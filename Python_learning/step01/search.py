@@ -1,11 +1,12 @@
 from .scanner import read_file_lines, extract_headings, extract_links, count_words
 from pathlib import Path
+from .types import DocumentSummary
 
 def extract_search_headings(lines: list[str], search_word: str) -> list[str]:
     headings = extract_headings(lines)
     return [heading for heading in headings if search_word.casefold() in heading.casefold()]
 
-def summarize_markdown(file_path: Path, search_word: str, phrase: str) -> dict[str, str | list[str] | int] | None:
+def summarize_markdown(file_path: Path, search_word: str, phrase: str) -> DocumentSummary | None:
     """Read one Markdown file and return its headings, links, and word count."""
     lines = list(read_file_lines(file_path))
 
@@ -17,9 +18,9 @@ def summarize_markdown(file_path: Path, search_word: str, phrase: str) -> dict[s
 
     headings = extract_search_headings(lines, search_word)
 
-    return {
-        "file": file_path.name,
-        "headings": headings,
-        "links": extract_links(lines),
-        "word_count": count_words(lines),
-    } if len(headings) > 0 else None
+    return DocumentSummary(
+        file=file_path.name,
+        headings=headings,
+        links=extract_links(lines),
+        word_count=count_words(lines),
+    ) if len(headings) > 0 else None

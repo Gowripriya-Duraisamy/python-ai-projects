@@ -2,9 +2,12 @@ import sys
 import argparse
 import json
 from pathlib import Path
+from dataclasses import asdict
+
+from .types import DocumentSummary
 from .search import summarize_markdown
 
-def get_summaries(file_path: Path, args) -> dict[str, str | list[str] | int] | None:
+def get_summaries(file_path: Path, args: argparse.Namespace) -> DocumentSummary | None:
     summary = None
     try:
         summary = summarize_markdown(file_path, args.search_word, args.phrase)
@@ -15,7 +18,7 @@ def get_summaries(file_path: Path, args) -> dict[str, str | list[str] | int] | N
     
     return summary
 
-def summarize_folder(args) -> list[dict[str, str | list[str] | int]]:
+def summarize_folder(args: argparse.Namespace) -> list[DocumentSummary]:
     """Summarize one Markdown file or Markdown files recursively in a folder.
 
     Problems with individual files are reported and skipped so other files
@@ -33,7 +36,7 @@ def summarize_folder(args) -> list[dict[str, str | list[str] | int]]:
     if not folder_path.is_dir():
         raise NotADirectoryError(f"not a folder: {folder_path}")
 
-    summaries: list[dict[str, str | list[str] | int]] = []
+    summaries: list[DocumentSummary] = []
     for file_path in sorted(folder_path.rglob("*.md")):
         summary = get_summaries(file_path, args)
         if summary:
@@ -56,7 +59,7 @@ def main() -> int:
         print(f"ERROR: {error}", file=sys.stderr)
         return 1
 
-    print(json.dumps(summaries, indent=2))
+    print(json.dumps([asdict(summary) for summary in summaries], indent=2))
     return 0
 
 if __name__ == "__main__":
